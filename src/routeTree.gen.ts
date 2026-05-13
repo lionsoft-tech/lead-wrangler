@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OperatorFlaggedRouteImport } from './routes/operator.flagged'
+import { Route as LeadsLeadIdRouteImport } from './routes/leads.$leadId'
+import { Route as OperatorShopsShopIdRouteImport } from './routes/operator.shops.$shopId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -22,31 +25,74 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OperatorFlaggedRoute = OperatorFlaggedRouteImport.update({
+  id: '/operator/flagged',
+  path: '/operator/flagged',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsLeadIdRoute = LeadsLeadIdRouteImport.update({
+  id: '/leads/$leadId',
+  path: '/leads/$leadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperatorShopsShopIdRoute = OperatorShopsShopIdRouteImport.update({
+  id: '/operator/shops/$shopId',
+  path: '/operator/shops/$shopId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/leads/$leadId': typeof LeadsLeadIdRoute
+  '/operator/flagged': typeof OperatorFlaggedRoute
+  '/operator/shops/$shopId': typeof OperatorShopsShopIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/leads/$leadId': typeof LeadsLeadIdRoute
+  '/operator/flagged': typeof OperatorFlaggedRoute
+  '/operator/shops/$shopId': typeof OperatorShopsShopIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/leads/$leadId': typeof LeadsLeadIdRoute
+  '/operator/flagged': typeof OperatorFlaggedRoute
+  '/operator/shops/$shopId': typeof OperatorShopsShopIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/leads/$leadId'
+    | '/operator/flagged'
+    | '/operator/shops/$shopId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login'
-  id: '__root__' | '/' | '/login'
+  to:
+    | '/'
+    | '/login'
+    | '/leads/$leadId'
+    | '/operator/flagged'
+    | '/operator/shops/$shopId'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/leads/$leadId'
+    | '/operator/flagged'
+    | '/operator/shops/$shopId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  LeadsLeadIdRoute: typeof LeadsLeadIdRoute
+  OperatorFlaggedRoute: typeof OperatorFlaggedRoute
+  OperatorShopsShopIdRoute: typeof OperatorShopsShopIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +111,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/operator/flagged': {
+      id: '/operator/flagged'
+      path: '/operator/flagged'
+      fullPath: '/operator/flagged'
+      preLoaderRoute: typeof OperatorFlaggedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads/$leadId': {
+      id: '/leads/$leadId'
+      path: '/leads/$leadId'
+      fullPath: '/leads/$leadId'
+      preLoaderRoute: typeof LeadsLeadIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operator/shops/$shopId': {
+      id: '/operator/shops/$shopId'
+      path: '/operator/shops/$shopId'
+      fullPath: '/operator/shops/$shopId'
+      preLoaderRoute: typeof OperatorShopsShopIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  LeadsLeadIdRoute: LeadsLeadIdRoute,
+  OperatorFlaggedRoute: OperatorFlaggedRoute,
+  OperatorShopsShopIdRoute: OperatorShopsShopIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
