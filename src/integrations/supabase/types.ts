@@ -14,13 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      calls: {
+        Row: {
+          caller_phone: string | null
+          created_at: string | null
+          duration_sec: number | null
+          flagged_for_review: boolean | null
+          id: string
+          recording_url: string | null
+          reviewed_by_operator: boolean | null
+          shop_id: string | null
+          started_at: string | null
+          transcript: string | null
+          vapi_call_id: string
+          was_faq_only: boolean | null
+          was_lead_captured: boolean | null
+        }
+        Insert: {
+          caller_phone?: string | null
+          created_at?: string | null
+          duration_sec?: number | null
+          flagged_for_review?: boolean | null
+          id?: string
+          recording_url?: string | null
+          reviewed_by_operator?: boolean | null
+          shop_id?: string | null
+          started_at?: string | null
+          transcript?: string | null
+          vapi_call_id: string
+          was_faq_only?: boolean | null
+          was_lead_captured?: boolean | null
+        }
+        Update: {
+          caller_phone?: string | null
+          created_at?: string | null
+          duration_sec?: number | null
+          flagged_for_review?: boolean | null
+          id?: string
+          recording_url?: string | null
+          reviewed_by_operator?: boolean | null
+          shop_id?: string | null
+          started_at?: string | null
+          transcript?: string | null
+          vapi_call_id?: string
+          was_faq_only?: boolean | null
+          was_lead_captured?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calls_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          call_id: string | null
+          callback_window: string | null
+          caller_name: string | null
+          caller_phone: string | null
+          created_at: string | null
+          id: number
+          problem: string | null
+          shop_id: string | null
+          status: string | null
+          urgency: string | null
+          vehicle: string | null
+        }
+        Insert: {
+          call_id?: string | null
+          callback_window?: string | null
+          caller_name?: string | null
+          caller_phone?: string | null
+          created_at?: string | null
+          id?: number
+          problem?: string | null
+          shop_id?: string | null
+          status?: string | null
+          urgency?: string | null
+          vehicle?: string | null
+        }
+        Update: {
+          call_id?: string | null
+          callback_window?: string | null
+          caller_name?: string | null
+          caller_phone?: string | null
+          created_at?: string | null
+          id?: number
+          problem?: string | null
+          shop_id?: string | null
+          status?: string | null
+          urgency?: string | null
+          vehicle?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shops: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          onboarded_date: string | null
+          owner_cell: string | null
+          owner_email: string | null
+          owner_name: string | null
+          status: string | null
+          twilio_number: string | null
+          user_id: string | null
+          vapi_assistant_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          onboarded_date?: string | null
+          owner_cell?: string | null
+          owner_email?: string | null
+          owner_name?: string | null
+          status?: string | null
+          twilio_number?: string | null
+          user_id?: string | null
+          vapi_assistant_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          onboarded_date?: string | null
+          owner_cell?: string | null
+          owner_email?: string | null
+          owner_name?: string | null
+          status?: string | null
+          twilio_number?: string | null
+          user_id?: string | null
+          vapi_assistant_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_operator: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
