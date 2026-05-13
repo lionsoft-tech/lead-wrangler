@@ -32,3 +32,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# SQL artifacts (one-time migration, not source)
+lovable-backend.sql
+real-backend-state.sql
+migration.sql
