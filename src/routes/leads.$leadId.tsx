@@ -101,7 +101,7 @@ function LeadDetailPage() {
         <Card className="p-6 text-sm text-muted-foreground">Lead not found.</Card>
       ) : (
         <LeadDetail
-          data={data}
+          data={{ lead: data.lead, recording_url: data.recording_url, transcript: data.transcript }}
           onChangeStatus={(s) => updateStatus.mutate(s)}
           celebrate={celebrate}
         />
