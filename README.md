@@ -8,11 +8,11 @@ At an independent auto repair shop, the people who answer the phone are usually 
 
 ## How it works
 
-A call to the shop's number arrives at Twilio, which hands the audio stream to Vapi. Vapi runs the voice agent that talks to the caller, holding a conversation rather than reading out a phone tree, and gathers what the shop needs in order to call back: who is calling, how to reach them, and what is wrong with the vehicle. [PLACEHOLDER: the specific fields the agent is prompted to collect during the call.]
+A call to the shop's number arrives at Twilio, which hands the audio stream to Vapi. Vapi runs the voice agent that talks to the caller, holding a conversation rather than reading out a phone tree, and gathers what the shop needs in order to call back: who is calling, how to reach them, and what is wrong with the vehicle. The record that lands in the dashboard holds a callback number, a description of the problem with the vehicle, an urgency signal, and the full transcript.
 
 When the call ends, Vapi posts the result to a webhook that writes the record into Supabase server-side. The transcript is stored next to the structured fields, so the shop can read what the caller actually said instead of trusting a summary. The dashboard never inserts call data itself, it only reads and updates, which keeps ingestion in one place and out of the browser.
 
-The shop owner opens a React and TypeScript dashboard, built mobile-first because the person checking it is usually standing in a bay rather than sitting at a desk. It answers one question: who do I call back, in what order, right now. Leads sort by urgency ahead of recency, so an undriveable car outranks a routine request that came in more recently. Tapping a phone number opens the dialer. After the callback the owner sets a status, which writes straight back to Supabase. Row-level security on every table means a shop can only ever read its own rows, enforced by the database rather than by the frontend.
+The shop owner opens a React and TypeScript dashboard, built mobile-first because the person checking it is usually standing in a bay rather than sitting at a desk. It answers one question: who do I call back, in what order, right now. Tapping a phone number opens the dialer. After the callback the owner sets a status, which writes straight back to Supabase. Row-level security on every table means a shop can only ever read its own rows, enforced by the database rather than by the frontend.
 
 ## Stack
 
