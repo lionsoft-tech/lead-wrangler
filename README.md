@@ -1,67 +1,66 @@
-# {PRODUCT_NAME} — Shop Owner Dashboard
+# LionSoft
 
-The dashboard is the shop owner's system of record for AI-receptionist callbacks.
-Mobile-first, single-purpose: who do I call back, in what order, right now.
+An AI voice agent that answers the phone for independent auto repair shops and turns each call into a structured callback record in a dashboard.
+
+## The problem
+
+At an independent auto repair shop, the people who answer the phone are usually the same people working on cars. When the bays are full, the phone rings unanswered. A missed call is not a deferred job, it is a lost one, because the caller dials the next shop on the list and books there instead. Shops rarely learn how much work they lose this way, since a call nobody answered leaves no record anywhere.
+
+## How it works
+
+A call to the shop's number arrives at Twilio, which hands the audio stream to Vapi. Vapi runs the voice agent that talks to the caller, holding a conversation rather than reading out a phone tree, and gathers what the shop needs in order to call back: who is calling, how to reach them, and what is wrong with the vehicle. [PLACEHOLDER: the specific fields the agent is prompted to collect during the call.]
+
+When the call ends, Vapi posts the result to a webhook that writes the record into Supabase server-side. The transcript is stored next to the structured fields, so the shop can read what the caller actually said instead of trusting a summary. The dashboard never inserts call data itself, it only reads and updates, which keeps ingestion in one place and out of the browser.
+
+The shop owner opens a React and TypeScript dashboard, built mobile-first because the person checking it is usually standing in a bay rather than sitting at a desk. It answers one question: who do I call back, in what order, right now. Leads sort by urgency ahead of recency, so an undriveable car outranks a routine request that came in more recently. Tapping a phone number opens the dialer. After the callback the owner sets a status, which writes straight back to Supabase. Row-level security on every table means a shop can only ever read its own rows, enforced by the database rather than by the frontend.
 
 ## Stack
 
-- Vite + React + TypeScript (TanStack Start template)
-- TanStack Router (file-based) for navigation
-- Tailwind CSS v4 + shadcn/ui
-- TanStack Query for data + cache
-- Supabase (via Lovable Cloud) for auth + data
-- date-fns for relative timestamps
-- sonner for toasts
+- **Twilio** receives the inbound call and provides the phone number.
+- **Vapi** runs the conversational voice agent and posts each completed call to a webhook.
+- **Supabase** stores shops, calls, and leads, handles magic-link auth, and enforces per-shop access through row-level security policies.
+- **React, TypeScript, and Vite** for the dashboard, on the TanStack Start template.
+- **TanStack Router** for file-based routing, **TanStack Query** for data fetching and caching.
+- **Tailwind CSS v4 and shadcn/ui** for the interface.
 
-> Note: this template ships with TanStack Router rather than React Router DOM.
-> Routing structure (`/`, `/login`, `/leads/:id`, `/operator/flagged`,
-> `/operator/shops/:shopId`) matches the spec exactly.
+## What I built, and what I did not
 
-## Backend dependencies (handle outside Lovable)
+Solo build. I wrote the Twilio and Vapi call ingestion path, the Supabase schema and its row-level security policies (including the operator role that grants cross-shop access), and the dashboard.
 
-The following backend tasks are NOT solved by the frontend code and need to be
-handled separately. The frontend assumes these are in place:
+It was never commercialized. No paying shops, no production call traffic, no pilot deployment. It is an MVP that demonstrates the architecture end to end and stops there. Parts of it are deliberately unfinished, and the build notes below list them. Product naming, for one, is still a placeholder token throughout the application code.
 
-1. **Operator visibility across shops.** RLS policies must grant SELECT on all
-   `shops`, `calls`, and `leads` rows to users where
-   `auth.jwt() -> 'user_metadata' ->> 'is_operator' = 'true'`.
-   *(Already shipped in this Cloud backend via the `public.is_operator()` helper.
-   If you swap to your own Supabase project, port that helper + policies.)*
-2. **Operator update permission on `calls.reviewed_by_operator`** requires an
-   RLS UPDATE policy gated on the same metadata flag. Same status as above.
-3. **The `is_operator` flag is set manually** in `auth.users.raw_user_meta_data`
-   via the Supabase admin console: `{ "is_operator": true }`.
-4. **Lead/call ingestion** — calls and leads are inserted server-side by the
-   Vapi webhook. The frontend never INSERTs.
-5. **Magic-link email delivery** — make sure SMTP is configured in the Cloud
-   backend. By default Lovable Cloud uses a shared sender that works for
-   testing; configure your own SMTP for production.
+## Build notes
 
-## Branding placeholder
+Engineering detail for anyone reading the code.
 
-Every visible product-name string is the literal token `{PRODUCT_NAME}`.
-Do a project-wide find-and-replace once the name is finalized. The favicon and
-any logo asset are also placeholders — replace `public/favicon.ico` when ready.
+### Backend work handled outside the frontend
 
-## Verification checklist
+The frontend assumes the following are in place. None of it is solved by the application code.
 
-Walk through these in the running app:
+- **Operator visibility across shops.** Row-level security policies must grant `SELECT` on all `shops`, `calls`, and `leads` rows to users where `auth.jwt() -> 'user_metadata' ->> 'is_operator' = 'true'`. This is already present in the current Cloud backend via the `public.is_operator()` helper. Porting the project to a different Supabase instance means porting that helper and its policies too.
+- **Operator update permission.** Writing to `calls.reviewed_by_operator` needs an RLS `UPDATE` policy gated on the same metadata flag. Same status as above.
+- **The `is_operator` flag** is set by hand in `auth.users.raw_user_meta_data` through the Supabase admin console: `{ "is_operator": true }`.
+- **Lead and call ingestion.** Rows are inserted server-side by the Vapi webhook. The frontend never inserts.
+- **Magic-link email delivery.** SMTP has to be configured in the Cloud backend. Lovable Cloud's shared sender is fine for testing, but a real deployment needs its own SMTP.
 
-1. App boots at `/` and redirects unauthenticated visitors to `/login`.
-2. Login sends a magic link via Supabase; clicking it lands on `/` authenticated.
-3. `/` shows the shop name as a heading and only that shop's leads (network tab
-   should show `shop_id=eq.<id>` filter; RLS enforces it server-side too).
-4. Sort: a manually inserted `emergency` lead from yesterday appears above a
-   `today` lead from 10 minutes ago.
-5. Status filter defaults to "Active"; date filter defaults to "All time".
-6. Tapping a card navigates to `/leads/:id` with all fields populated and the
-   transcript collapsed.
-7. On mobile (375px), the phone number is a large tappable button and `tel:`
-   opens the dialer.
-8. Changing the status dropdown writes to Supabase and persists on return.
-9. Setting status to "Converted" plays the celebration animation + toast.
-10. Sign out from the avatar dropdown returns to `/login` and clears session.
-11. With `is_operator: true` in user_metadata, `/` renders the operator home
-    with a shop selector instead of the owner home.
-12. `/operator/flagged` renders the queue and "Mark reviewed" optimistically
-    removes a row.
+### Routing
+
+This template uses TanStack Router rather than React Router DOM. The route structure (`/`, `/login`, `/leads/:id`, `/operator/flagged`, `/operator/shops/:shopId`) matches the original spec.
+
+### Branding placeholder
+
+Every visible product-name string in the application code is still the literal token `{PRODUCT_NAME}`. Finalizing the name means a project-wide find and replace. The favicon and logo assets are placeholders as well, so `public/favicon.ico` needs replacing at the same time.
+
+### Known limitations
+
+Operator access is gated on an `is_operator` flag stored in `user_metadata`. That field is writable by the user through `supabase.auth.updateUser`, so an authenticated user can set it on themselves, which means the check is not a real authorization boundary. The correct place for the flag is `app_metadata`, which only server-side code can write. This is a known issue in the current implementation and it has not been corrected.
+
+### Verification checklist
+
+Walked manually in the running app.
+
+- Unauthenticated visitors are redirected to `/login`, and a magic link authenticates and lands on `/`.
+- A signed-in owner sees only their own shop's leads. The request carries a `shop_id=eq.<id>` filter, and RLS enforces the same restriction server-side.
+- Leads written server-side by the Vapi webhook appear in the dashboard with no client-side insert.
+- Changing a lead's status writes to Supabase and persists on return.
+- With `is_operator: true` in user metadata, `/` renders the operator home with a shop selector, and Mark reviewed on `/operator/flagged` removes a row.
